@@ -35,7 +35,15 @@ if torch.cuda.is_available():
 
 print('Loading checkpoint', opts.evaluate)
 checkpoint = torch.load(opts.evaluate, map_location=lambda storage, loc: storage)
-model_backbone.load_state_dict(checkpoint['model_pos'], strict=True)
+
+#Fixing Missing keys in dict error (removing module from dict)
+from collections import OrderedDict
+new_state_dict = OrderedDict()
+for k, v in checkpoint["model_pos"].items():
+  name = k.replace("module.", "" ) # remove module.
+  new_state_dict[name] = v
+
+model_backbone.load_state_dict(new_state_dict)
 model_pos = model_backbone
 model_pos.eval()
 testloader_params = {
